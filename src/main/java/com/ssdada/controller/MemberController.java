@@ -5,10 +5,7 @@ import com.ssdada.oauth.token.AuthTokensGenerator;
 import com.ssdada.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,5 +24,13 @@ public class MemberController {
     public ResponseEntity<Member> findByAccessToken(@PathVariable String accessToken) {
         Long memberId = authTokensGenerator.extractMemberId(accessToken);
         return ResponseEntity.ok(memberRepository.findById(memberId).get());
+    }
+    @PostMapping("/update")
+    public ResponseEntity<Void> updateMembers() {
+        return null;
+    }
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteMembers() {
+        return null;
     }
 }

@@ -6,7 +6,9 @@
     <script th:inline="javascript">
         $('document').ready(function() {
 
-          let globalBoard = "";
+          let boardId = 0;
+          let diaryId = 0;
+
 
           $('#addDiaryModal').click(function() {
             $('#diaryModal').modal('show');
@@ -49,7 +51,7 @@
               type: 'GET',
               success: function(response) {
                 response.forEach(function(board) {
-                  createBoard(board.title);
+                  createBoard(board);
                 });
               },
               error: function(xhr, status, error) {
@@ -59,15 +61,15 @@
             });
           }
 
-          function createBoard(title) {
+          function createBoard(board) {
             let cardBody = $('<div>')
               .addClass('card-body board-cardbody');
 
             let titleElement = $('<div>')
               .addClass('text-center')
-              .text(title)
+              .text(board.title)
               .click(function() {
-                inDiaryPage($(this).text(), cardBody);
+                inDiaryPage(board);
             });
             cardBody.append(titleElement);
 
@@ -78,7 +80,7 @@
               .css('margin-right', '30px')
               .text('수정')
               .click(function() {
-                createTextBox($(this), title);
+                createTextBox($(this), board.title);
             });
             cardFooter.append(updateButton);
 
@@ -86,7 +88,7 @@
               .addClass('btn btn-danger opacity-25 btn-sm')
               .text('x')
               .click(function() {
-                removeBoard(title);
+                removeBoard(board);
             });
             cardFooter.append(removeButton);
 
@@ -101,14 +103,12 @@
               .append(diary);
           }
 
-          function inDiaryPage(title) {
-
-            globalBoard = title;
+          function inDiaryPage(board) {
 
             $.ajax({
               url: 'api/getDiary',
               type: 'GET',
-              data: { boardName: title },
+              data: { boardId: board.id },
               success: function(response) {
               console.log(response.length);
 
@@ -198,7 +198,7 @@
             formData.append('diaryName', titleInput);
             formData.append('diaryContent', contentInput);
             formData.append('regDate', dateTimeInput);
-            formData.append('boardName', globalBoard);
+            formData.append('boardName', boardId);
 
             let files = $('#fileUpload')[0].files;
             for(let i=0; i<files.length; i++) {
@@ -256,12 +256,10 @@
             });
           }
 
-          function removeBoard(title) {
+          function removeBoard(board) {
             $.ajax({
-              url: 'api/deleteBoard',
+              url: 'api/deleteBoard/' + board.id,
               type: 'DELETE',
-              contentType: 'application/json',
-              data: JSON.stringify({ boardName: title }),
               success: function(response) {
                 alert("일기장 삭제 완료");
                 loadBoard();

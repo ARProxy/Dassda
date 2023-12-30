@@ -7,7 +7,6 @@ import lombok.Setter;
 @Setter
 public class BoardDto {
     private Long id;
-    private String boardName;
-    private String newName;
-
+    private String boardTitle;
+    private String updateTitle;
 }
