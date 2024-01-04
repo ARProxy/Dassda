@@ -4,11 +4,34 @@
       layout:decorate="~{layouts/layout}">
 <th:block layout:fragment="script">
     <script th:inline="javascript">
-        $('document').ready(function() {
+        $(document).ready(function() {
+          const urlParams = new URLSearchParams(window.location.search);
+          const code = urlParams.get('code');
+
+          let accessToken = localStorage.getItem('accessToken');
+          console.log(accessToken);
+          if(code) {
+          localStorage.setItem('accessToken', code);
+            $.ajax({
+                url: 'api/auth/kakao',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ authorizationCode: code }),
+                success: function(response) {
+                    console.log(response);
+                    const urlWithoutCode = window.location.origin;
+                    window.location.href = urlWithoutCode;
+                    localStorage.setItem('accessToken', response.accessToken);
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
+          }
 
           let boardId = 0;
           let diaryId = 0;
-
+          let designId = 0;
 
           $('#addDiaryModal').click(function() {
             $('#diaryModal').modal('show');
@@ -23,10 +46,13 @@
             let diaryTitle = $('#addDiaryTitle').val().trim();
             if(diaryTitle && diaryTitle.length > 0 && diaryTitle.length <= 20) {
               $.ajax({
-                url: 'api/addBoard',
+                url: 'api/boards/add',
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ boardName: diaryTitle }),
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
+                },
+                data: JSON.stringify({ boardTitle: diaryTitle, design: 1, style: 1 }),
                 success: function(response) {
                   $('#diaryModal').modal('hide');
                   $('#addDiaryTitle').val('');
@@ -47,7 +73,7 @@
           function loadBoard() {
             $('#board-container').empty();
             $.ajax({
-              url: 'api/getBoard',
+              url: 'api/boards/get',
               type: 'GET',
               success: function(response) {
                 response.forEach(function(board) {
@@ -80,7 +106,7 @@
               .css('margin-right', '30px')
               .text('수정')
               .click(function() {
-                createTextBox($(this), board.title);
+                createTextBox($(this), board);
             });
             cardFooter.append(updateButton);
 
@@ -103,10 +129,56 @@
               .append(diary);
           }
 
+          function createTextBox(edit, board) {
+            let textBox = $('<input type="text" class="form-control">').val(board.title);
+            let updateButton = $('<button>')
+              .text('수정')
+              .addClass('btn btn-sm btn-dark update-btn');
+
+            updateButton.click(function() {
+              updateBoard(textBox.val(), board);
+              textBox.replaceWith(edit);
+            });
+
+            let container = $('<div>')
+              .addClass('update-container')
+              .append(textBox)
+              .append(updateButton);
+
+            edit.replaceWith(container);
+            textBox.focus();
+          }
+
+          function updateBoard(newTitle, board) {
+            $.ajax({
+              url: 'api/boards/update',
+              type: 'POST',
+              contentType: 'application/json',
+              data: JSON.stringify({ updateTitle: newTitle, id: board.id }),
+              success: function(response) {
+
+              },
+              error: function(xhr, status, error) {
+                console.error('update fail:', error);
+              }
+            });
+          }
+
+          function removeBoard(board) {
+            $.ajax({
+              url: 'api/boards/delete/' + board.id,
+              type: 'DELETE',
+              success: function(response) {
+                alert("일기장 삭제 완료");
+                loadBoard();
+              }
+            });
+          }
+
           function inDiaryPage(board) {
 
             $.ajax({
-              url: 'api/getDiary',
+              url: 'api/diary/get',
               type: 'GET',
               data: { boardId: board.id },
               success: function(response) {
@@ -206,7 +278,7 @@
             }
 
             $.ajax({
-              url: 'api/addDiary',
+              url: 'api/diary/add',
               type: 'POST',
               data: formData,
               contentType: false,
@@ -221,51 +293,7 @@
             });
           });
 
-          function createTextBox(edit, oldTitle) {
-            let textBox = $('<input type="text" class="form-control">').val(oldTitle);
-            let updateButton = $('<button>')
-              .text('수정')
-              .addClass('btn btn-sm btn-dark update-btn');
 
-            updateButton.click(function() {
-              updateBoard(textBox.val(), oldTitle);
-              textBox.replaceWith(edit);
-            });
-
-            let container = $('<div>')
-              .addClass('update-container')
-              .append(textBox)
-              .append(updateButton);
-
-            edit.replaceWith(container);
-            textBox.focus();
-          }
-
-          function updateBoard(newTitle, oldTitle) {
-            $.ajax({
-              url: 'api/updateBoard',
-              type: 'POST',
-              contentType: 'application/json',
-              data: JSON.stringify({ newName: newTitle, boardName: oldTitle }),
-              success: function(response) {
-                console.log('board update:', response);
-              },
-              error: function(xhr, status, error) {
-                console.error('update fail:', error);
-              }
-            });
-          }
-
-          function removeBoard(board) {
-            $.ajax({
-              url: 'api/deleteBoard/' + board.id,
-              type: 'DELETE',
-              success: function(response) {
-                alert("일기장 삭제 완료");
-                loadBoard();
-              }
-            });
-          }
 
         });
     </script>
@@ -282,6 +310,7 @@
                 </div>
                 <div class="card-footer" id="main-footer">
                     <button class="btn btn-dark btn-sm" id="addDiaryModal">일기장 추가</button>
+
                 </div>
             </div>
         </div>

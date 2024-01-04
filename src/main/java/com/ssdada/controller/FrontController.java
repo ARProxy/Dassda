@@ -11,4 +11,9 @@ public class FrontController {
     public String mainPage() {
         return "/index";
     }
+
+    @GetMapping(value = "login")
+    public String loginPage() {
+        return "/login";
+    }
 }

@@ -2,11 +2,9 @@ package com.ssdada.service;
 
 import com.ssdada.dto.BoardDto;
 import com.ssdada.dto.DiaryDto;
-import com.ssdada.entity.Board;
-import com.ssdada.entity.Diary;
-import com.ssdada.repository.BoardRepository;
-import com.ssdada.repository.DiaryImgRepository;
-import com.ssdada.repository.DiaryRepository;
+import com.ssdada.entity.*;
+import com.ssdada.repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +19,9 @@ import java.util.Optional;
 @Log
 @RequiredArgsConstructor
 public class BoardService {
+    private final DesignRepository designRepository;
+    private final StyleRepository styleRepository;
+    private final MemberRepository memberRepository;
     private final BoardRepository boardRepository;
     private final DiaryRepository diaryRepository;
     private final DiaryImgRepository diaryImgRepository;
@@ -28,9 +29,17 @@ public class BoardService {
     @Value("${itemImgLocation}")
     private String itemImgLocation;
 
-    public void insertBoardTitle(String title) {
+    public void insertBoardTitle(BoardDto boardDto, String userId) {
+        Member member = memberRepository.findById(Long.valueOf(userId)).orElseThrow(() -> new EntityNotFoundException("멤버 테이블에 없음"));
+        Optional<Design> designId = designRepository.findById(Long.valueOf(boardDto.getDesign()));
+        Optional<Style> styleId = styleRepository.findById(Long.valueOf(boardDto.getStyle()));
         Board board = new Board();
-        board.setTitle(title);
+        board.setTitle(boardDto.getBoardTitle());
+        board.setMember(member);
+        board.setDesign(designId.get());
+        board.setStyle(styleId.get());
+        board.setRegDate(LocalDateTime.now());
+//        board.setMember(Long.valueOf(userId)); 타입 불일치 엔티티 선언할 때 멤버 타입의 컬럼이기 때문에 멤버에서 찾아와야함..
         boardRepository.save(board);
     }
     public void deleteBoard(Long id) {

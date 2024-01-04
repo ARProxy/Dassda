@@ -20,12 +20,22 @@ public class Diary {
     @JoinColumn(name = "board_id", referencedColumnName = "id")
     private Board board;
 
+    @OneToOne
+    @JoinColumn(name = "sticker_id", referencedColumnName = "id")
+    private Sticker sticker;
+
     @Column(name = "diary_title")
-    private String diaryName;
+    private String diaryTitle;
 
     @Column(name = "diary_content")
     private String diaryContent;
 
+    @Column(name = "diary_exist")
+    private String existing;
+
     @Column(name = "reg_date")
     private LocalDateTime regDate;
+
+    @Column(name = "update_date")
+    private LocalDateTime updateDate;
 }

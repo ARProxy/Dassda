@@ -36,7 +36,7 @@ public class DiaryService {
     public void addDiary(DiaryDto diaryDto) throws Exception {
         LocalDateTime dateTime = LocalDateTime.parse(diaryDto.getRegDate());
         Diary diary = new Diary();
-        diary.setDiaryName(diaryDto.getDiaryName());
+        diary.setDiaryTitle(diaryDto.getDiaryTitle());
         diary.setDiaryContent(diaryDto.getDiaryContent());
         diary.setRegDate(dateTime);
 

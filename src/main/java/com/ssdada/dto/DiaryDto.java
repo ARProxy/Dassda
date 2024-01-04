@@ -12,8 +12,10 @@ import java.util.List;
 public class DiaryDto {
     private Long id;
     private Long boardId;
-    private String diaryName;
+    private Long stickerId;
+    private String diaryTitle;
     private String diaryContent;
     private String regDate;
+    private String updateDate;
     private List<MultipartFile> diaryImgs;
 }
